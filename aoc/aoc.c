@@ -36,17 +36,23 @@
 	}                                                                                  \
 }
 
+#ifdef _POSIX
+#define MAX_PATH PATH_MAX
+#else
+#define MAX_PATH _MAX_PATH
+#endif
+
 
 bool
 ReadSampleData( const char* _path, char** _lines, size_t* length )
 {
 	FILE* file;
 
-	char fullPath[ _MAX_PATH ] = { 0 };
+	char fullPath[ MAX_PATH ] = { 0 };
 
-	if( strlen( DATA_ROOT_DIR ) + strlen( _path ) + 2 >= _MAX_PATH )
+	if( strlen( DATA_ROOT_DIR ) + strlen( _path ) + 2 >= MAX_PATH )
 	{
-		LOG_ERROR( "Data path [%hs] or file path [%hs] too long and combined exceeds [%d B] value", DATA_ROOT_DIR, _path, _MAX_PATH );
+		LOG_ERROR( "Data path [%hs] or file path [%hs] too long and combined exceeds [%d B] value", DATA_ROOT_DIR, _path, MAX_PATH );
 		return false;
 	}
 
