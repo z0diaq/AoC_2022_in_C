@@ -42,7 +42,7 @@ main( int _argc, char* _argv[ ] )
 
 	RELEASE( fileContents );
 
-	LOG_INFO( "Result: [%llu]", ctx.m_sumCalories );
+	LOG_INFO( "Result: [%zu]", ctx.m_sumCalories );
 
 	return result;
 }

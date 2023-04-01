@@ -80,7 +80,7 @@ ReadSampleData( const char* _path, char** _lines, size_t* length )
 
 	if( NULL == *_lines )
 	{
-		LOG_ERROR( "Could not allocate [%llu B] for file contents", sizeFile + 1 );
+		LOG_ERROR( "Could not allocate [%zu B] for file contents", sizeFile + 1u );
 		return false;
 	}
 
