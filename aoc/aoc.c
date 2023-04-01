@@ -1,11 +1,8 @@
 ﻿#include "aoc.h"
 
-//#ifndef _POSIX
-//#define _CRT_SECURE_NO_WARNINGS
-//#endif
-
 #include <stdio.h>
-#include <stdlib.h> //errno
+#include <stdlib.h>
+#include <errno.h>
 #include <string.h>
 
 #ifndef DATA_ROOT_DIR
@@ -37,6 +34,7 @@
 }
 
 #ifndef _MSC_VER
+	#include <linux/limits.h>
 	#define MAX_PATH PATH_MAX
 #else
 	#define MAX_PATH _MAX_PATH
