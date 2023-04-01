@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdlib.h> //min and max - if exist
+
 #define RELEASE(chunk) free(chunk);chunk = NULL
 
 #ifdef _RELEASE
@@ -15,4 +17,22 @@
 #define LOG_DEBUG(...) fprintf(stderr, "DEBUG: " __VA_ARGS__ ); fprintf(stdout, "\n"); FLUSH( stderr )
 #else
 #define LOG_DEBUG(...)
+#endif
+
+#ifndef max
+#define max(a,b)             \
+({                           \
+    __typeof__ (a) _a = (a); \
+    __typeof__ (b) _b = (b); \
+    _a > _b ? _a : _b;       \
+})
+#endif
+
+#ifndef min
+#define min(a,b)             \
+({                           \
+    __typeof__ (a) _a = (a); \
+    __typeof__ (b) _b = (b); \
+    _a < _b ? _a : _b;       \
+})
 #endif
