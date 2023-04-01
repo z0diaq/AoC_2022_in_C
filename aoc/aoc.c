@@ -50,7 +50,7 @@ ReadSampleData( const char* _path, char** _lines, size_t* length )
 
 	if( strlen( DATA_ROOT_DIR ) + strlen( _path ) + 2 >= MAX_PATH )
 	{
-		LOG_ERROR( "Data path [%hs] or file path [%hs] too long and combined exceeds [%d B] value", DATA_ROOT_DIR, _path, MAX_PATH );
+		LOG_ERROR( "Data path [%s] or file path [%s] too long and combined exceeds [%d B] value", DATA_ROOT_DIR, _path, MAX_PATH );
 		return false;
 	}
 
@@ -58,13 +58,13 @@ ReadSampleData( const char* _path, char** _lines, size_t* length )
 	VERIFY_NOT_NULL( strcat( fullPath, "\\" ) );
 	VERIFY_NOT_NULL( strcat( fullPath, _path ) );
 
-	LOG_INFO( "Full path: [%hs]", fullPath );
+	LOG_INFO( "Full path: [%s]", fullPath );
 
 	file = fopen( fullPath, "r" );
 
 	if( NULL == file )
 	{
-		LOG_ERROR( "Could not open [%hs] - error: [%d]", fullPath, errno );
+		LOG_ERROR( "Could not open [%s] - error: [%d]", fullPath, errno );
 		return false;
 	}
 
@@ -72,7 +72,7 @@ ReadSampleData( const char* _path, char** _lines, size_t* length )
 
 	const size_t sizeFile = ftell( file );
 
-	LOG_DEBUG( "[%hs] has size of [%llu B]", fullPath, sizeFile );
+	LOG_DEBUG( "[%s] has size of [%llu B]", fullPath, sizeFile );
 
 	VERIFY_IS_ZERO( fseek( file, 0, SEEK_SET ) );
 
@@ -90,7 +90,7 @@ ReadSampleData( const char* _path, char** _lines, size_t* length )
 
 	if( ferror( file ) )
 	{
-		LOG_ERROR( "Error [%d] during data read from [%hs]", errno, _path );
+		LOG_ERROR( "Error [%d] during data read from [%s]", errno, _path );
 		free( *_lines );
 		*_lines = NULL;
 		return false;
