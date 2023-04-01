@@ -42,7 +42,14 @@ ReadSampleData( const char* _path, char** _lines, size_t* length )
 {
 	FILE* file;
 
-	char fullPath[ PATH_LENGTH ] = { 0 };
+	char fullPath[ _MAX_PATH ] = { 0 };
+
+	if( strlen( DATA_ROOT_DIR ) + strlen( _path ) + 2 >= _MAX_PATH )
+	{
+		LOG_ERROR( "Data path [%hs] or file path [%hs] too long and combined exceeds [%d B] value", DATA_ROOT_DIR, _path, _MAX_PATH );
+		return false;
+	}
+
 	VERIFY_NOT_NULL( strcpy( fullPath, DATA_ROOT_DIR ) );
 	VERIFY_NOT_NULL( strcat( fullPath, "\\" ) );
 	VERIFY_NOT_NULL( strcat( fullPath, _path ) );
