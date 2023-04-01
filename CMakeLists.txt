@@ -2,7 +2,7 @@
 
 project ("AoC_2022")
 
-add_definitions(-DDATA_ROOT_DIR="${CMAKE_SOURCE_DIR}")
+add_definitions(-DDATA_ROOT_DIR="${CMAKE_SOURCE_DIR}" -D_CRT_SECURE_NO_WARNINGS)
 
 add_subdirectory("aoc")
 

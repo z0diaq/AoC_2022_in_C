@@ -1,5 +1,9 @@
 ﻿#include "aoc.h"
 
+//#ifndef _POSIX
+//#define _CRT_SECURE_NO_WARNINGS
+//#endif
+
 #include <stdio.h>
 #include <stdlib.h> //errno
 #include <string.h>
@@ -13,9 +17,9 @@
 #define STRINGIFY(x) STRINGIFY2(x)
 #define STRINGIFY2(x) #x
 
-#define VERIFY(cmd)                                                                    \
+#define VERIFY_IS_ZERO(cmd)                                                            \
 {                                                                                      \
-	const errno_t errorCode = cmd;                                                     \
+	const int errorCode = cmd;                                                         \
 	if(errorCode)                                                                      \
 	{                                                                                  \
 		LOG_ERROR( "Command [%hs] failed with error [%d]", STRINGIFY(cmd), errorCode); \
@@ -23,26 +27,43 @@
 	}                                                                                  \
 }
 
+#define VERIFY_NOT_NULL(cmd)                                                           \
+{                                                                                      \
+	if(NULL == cmd)                                                                    \
+	{                                                                                  \
+		LOG_ERROR( "Command [%hs] failed with error [%d]", STRINGIFY(cmd), errno);     \
+		return false;                                                                  \
+	}                                                                                  \
+}
+
+
 bool
 ReadSampleData( const char* _path, char** _lines, size_t* length )
 {
 	FILE* file;
 
 	char fullPath[ PATH_LENGTH ] = { 0 };
-	VERIFY( strcpy_s( fullPath, PATH_LENGTH, DATA_ROOT_DIR ) );
-	VERIFY( strcat_s( fullPath, PATH_LENGTH, "\\" ) );
-	VERIFY( strcat_s( fullPath, PATH_LENGTH, _path ) );
+	VERIFY_NOT_NULL( strcpy( fullPath, DATA_ROOT_DIR ) );
+	VERIFY_NOT_NULL( strcat( fullPath, "\\" ) );
+	VERIFY_NOT_NULL( strcat( fullPath, _path ) );
 
 	LOG_INFO( "Full path: [%hs]", fullPath );
 
-	VERIFY( fopen_s( &file, fullPath, "r" ) );
-	VERIFY( fseek( file, 0, SEEK_END ) );
+	file = fopen( fullPath, "r" );
+
+	if( NULL == file )
+	{
+		LOG_ERROR( "Could not open [%hs] - error: [%d]", fullPath, errno );
+		return false;
+	}
+
+	VERIFY_IS_ZERO( fseek( file, 0, SEEK_END ) );
 
 	const size_t sizeFile = ftell( file );
 
 	LOG_DEBUG( "[%hs] has size of [%llu B]", fullPath, sizeFile );
 
-	VERIFY( fseek( file, 0, SEEK_SET ) );
+	VERIFY_IS_ZERO( fseek( file, 0, SEEK_SET ) );
 
 	*_lines = malloc( sizeFile + 1 );
 
@@ -54,7 +75,7 @@ ReadSampleData( const char* _path, char** _lines, size_t* length )
 
 	*length = fread( *_lines, sizeof( char ), sizeFile, file );
 
-	VERIFY( fclose( file ) );
+	VERIFY_IS_ZERO( fclose( file ) );
 
 	if( ferror( file ) )
 	{
