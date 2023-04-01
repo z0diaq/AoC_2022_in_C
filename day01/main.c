@@ -50,7 +50,7 @@ main( int _argc, char* _argv[ ] )
 void Process( const char* line, struct Context* ctx )
 {
 
-	LOG_INFO( "Line [%hs]", line );
+	LOG_INFO( "Line [%s]", line );
 
 	if( strlen( line ) == 0 )
 		ctx->m_partialSum = 0;
