@@ -19,7 +19,7 @@
 	const int errorCode = cmd;                                                         \
 	if(errorCode)                                                                      \
 	{                                                                                  \
-		LOG_ERROR( "Command [%hs] failed with error [%d]", STRINGIFY(cmd), errorCode); \
+		LOG_ERROR( "Command [%s] failed with error [%d]", STRINGIFY(cmd), errorCode);  \
 		return false;                                                                  \
 	}                                                                                  \
 }
@@ -28,7 +28,7 @@
 {                                                                                      \
 	if(NULL == cmd)                                                                    \
 	{                                                                                  \
-		LOG_ERROR( "Command [%hs] failed with error [%d]", STRINGIFY(cmd), errno);     \
+		LOG_ERROR( "Command [%s] failed with error [%d]", STRINGIFY(cmd), errno);      \
 		return false;                                                                  \
 	}                                                                                  \
 }
