@@ -36,10 +36,10 @@
 	}                                                                                  \
 }
 
-#ifdef _POSIX
-#define MAX_PATH PATH_MAX
+#ifndef _MSC_VER
+	#define MAX_PATH PATH_MAX
 #else
-#define MAX_PATH _MAX_PATH
+	#define MAX_PATH _MAX_PATH
 #endif
 
 
