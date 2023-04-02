@@ -36,3 +36,25 @@
     _a < _b ? _a : _b;       \
 })
 #endif
+
+#define STRINGIFY(x) STRINGIFY2(x)
+#define STRINGIFY2(x) #x
+
+#define VERIFY_IS_ZERO(cmd)                                                            \
+{                                                                                      \
+	const int errorCode = cmd;                                                         \
+	if(errorCode)                                                                      \
+	{                                                                                  \
+		LOG_ERROR( "Command [%s] failed with error [%d]", STRINGIFY(cmd), errorCode);  \
+		return false;                                                                  \
+	}                                                                                  \
+}
+
+#define VERIFY_NOT_NULL(cmd)                                                           \
+{                                                                                      \
+	if(NULL == cmd)                                                                    \
+	{                                                                                  \
+		LOG_ERROR( "Command [%s] failed with error [%d]", STRINGIFY(cmd), errno);      \
+		return false;                                                                  \
+	}                                                                                  \
+}

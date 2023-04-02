@@ -9,30 +9,6 @@
 	#error DATA_ROOT_DIR must be provided!
 #endif
 
-#define PATH_LENGTH 128
-
-#define STRINGIFY(x) STRINGIFY2(x)
-#define STRINGIFY2(x) #x
-
-#define VERIFY_IS_ZERO(cmd)                                                            \
-{                                                                                      \
-	const int errorCode = cmd;                                                         \
-	if(errorCode)                                                                      \
-	{                                                                                  \
-		LOG_ERROR( "Command [%s] failed with error [%d]", STRINGIFY(cmd), errorCode);  \
-		return false;                                                                  \
-	}                                                                                  \
-}
-
-#define VERIFY_NOT_NULL(cmd)                                                           \
-{                                                                                      \
-	if(NULL == cmd)                                                                    \
-	{                                                                                  \
-		LOG_ERROR( "Command [%s] failed with error [%d]", STRINGIFY(cmd), errno);      \
-		return false;                                                                  \
-	}                                                                                  \
-}
-
 #ifndef _MSC_VER
 	#include <linux/limits.h>
 	#define MAX_PATH PATH_MAX
@@ -40,27 +16,61 @@
 	#define MAX_PATH _MAX_PATH
 #endif
 
+bool ReadData( const char* _relativePathWithFilestem, const char* _postfix, struct FileContents* _contents );
+void Init( struct FileContents* _contents );
 
 bool
-ReadSampleData( const char* _path, char** _lines, size_t* length )
+ReadSampleData( struct TestData* _data )
 {
-	FILE* file;
+	Init( &_data->input );
+	Init( &_data->expectedResult );
 
-	char fullPath[ MAX_PATH ] = { 0 };
-
-	if( strlen( DATA_ROOT_DIR ) + strlen( _path ) + 2 >= MAX_PATH )
+	if( false == ReadData(
+		_data->relativePathWithFilestem,
+		NULL,
+		&_data->input ) )
 	{
-		LOG_ERROR( "Data path [%s] or file path [%s] too long and combined exceeds [%d B] value", DATA_ROOT_DIR, _path, MAX_PATH );
 		return false;
 	}
 
+	ReadData(
+		_data->relativePathWithFilestem,
+		"_result",
+		&_data->expectedResult );
+
+	return true;
+}
+
+bool
+ReadData( const char* _relativePathWithFilestem, const char* _postfix, struct FileContents* _contents )
+{
+	LOG_DEBUG( "_relativePathWithFilestem: [%s] _postfix: [%s]", _relativePathWithFilestem, _postfix );
+
+	const size_t postfixLength = ( _postfix ? strlen( _postfix ) : 0 );
+
+	if( strlen( DATA_ROOT_DIR ) + strlen( _relativePathWithFilestem ) + postfixLength + 5 >= MAX_PATH )
+	{
+		LOG_ERROR(
+			"Data path [%s] or file path [%s] + postfix [%s] too long and combined exceeds [%d B] value",
+			DATA_ROOT_DIR,
+			_relativePathWithFilestem,
+			_postfix,
+			MAX_PATH );
+		return false;
+	}
+
+	char fullPath[ MAX_PATH ] = { 0 };
+
 	VERIFY_NOT_NULL( strcpy( fullPath, DATA_ROOT_DIR ) );
 	VERIFY_NOT_NULL( strcat( fullPath, "\\" ) );
-	VERIFY_NOT_NULL( strcat( fullPath, _path ) );
+	VERIFY_NOT_NULL( strcat( fullPath, _relativePathWithFilestem ) );
+	if( _postfix )
+		VERIFY_NOT_NULL( strcat( fullPath, _postfix ) );
+	VERIFY_NOT_NULL( strcat( fullPath, ".txt" ) );
 
-	LOG_INFO( "Full path: [%s]", fullPath );
+	LOG_DEBUG( "Full path: [%s]", fullPath );
 
-	file = fopen( fullPath, "r" );
+	FILE* file = fopen( fullPath, "r" );
 
 	if( NULL == file )
 	{
@@ -76,28 +86,34 @@ ReadSampleData( const char* _path, char** _lines, size_t* length )
 
 	VERIFY_IS_ZERO( fseek( file, 0, SEEK_SET ) );
 
-	*_lines = malloc( sizeFile + 1 );
+	_contents->data = malloc( sizeFile + 1 );
 
-	if( NULL == *_lines )
+	if( NULL == _contents->data )
 	{
 		LOG_ERROR( "Could not allocate [%zu B] for file contents", sizeFile + 1u );
 		return false;
 	}
 
-	*length = fread( *_lines, sizeof( char ), sizeFile, file );
+	_contents->size = fread( _contents->data, sizeof( char ), sizeFile, file );
 
-	VERIFY_IS_ZERO( fclose( file ) );
-
-	if( ferror( file ) )
+	if( fclose( file ) || ferror( file ) )
 	{
-		LOG_ERROR( "Error [%d] during data read from [%s]", errno, _path );
-		free( *_lines );
-		*_lines = NULL;
+		LOG_ERROR( "Error [%d] during data read from [%s]", errno, fullPath );
+		RELEASE( _contents->data );
 		return false;
 	}
 
-	LOG_DEBUG( "Read [%llu B]", *length );
-	( *_lines )[ *length ] = 0;
+	LOG_DEBUG( "Read [%llu B]", _contents->size );
+	_contents->data[ _contents->size ] = 0;
+	_contents->isRead = true;
 
 	return true;
+}
+
+void
+Init( struct FileContents* _contents )
+{
+	_contents->isRead = false;
+	_contents->data   = NULL;
+	_contents->size   = 0;
 }
