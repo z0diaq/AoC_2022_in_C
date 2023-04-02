@@ -18,7 +18,7 @@ enum ComputeResult
 };
 
 void Process( const char* _line, struct Context* _ctx );
-enum ResultType Compute( const char* _relativePathWithFilestem, enum AccessType _access );
+enum ComputeResult Compute( const char* _relativePathWithFilestem, enum AccessType _access );
 bool IsResultAcceptable( enum ComputeResult _result );
 
 int
@@ -41,7 +41,7 @@ main( int _argc, char* _argv[ ] )
 	return result;
 }
 
-enum ResultType
+enum ComputeResult
 Compute( const char* _relativePathWithFilestem, enum AccessType _access )
 {
 	const char sep = '\n';
