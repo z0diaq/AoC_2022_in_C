@@ -1,35 +1,61 @@
 ﻿#include <stdio.h>
-#include <stdlib.h> //errno
-#include <string.h> //strtok_s
+#include <string.h> //strlen, strcmp
 
 #include "aoc.h"
 
 struct Context
 {
-	size_t m_sumCalories;
-	size_t m_partialSum;
+	size_t sumCalories;
+	size_t partialSum;
+};
+
+enum ComputeResult
+{
+	ComputeResultMatch,
+	ComputeResultNoInput,
+	ComputeResultNoResult,
+	ComputeResultNoMatch
 };
 
 void Process( const char* _line, struct Context* _ctx );
+enum ResultType Compute( const char* _relativePathWithFilestem, enum AccessType _access );
+bool IsResultAcceptable( enum ComputeResult _result );
 
 int
 main( int _argc, char* _argv[ ] )
 {
+	bool ok = IsResultAcceptable( Compute( "day01/sample_input_a", Public ) );
+	ok = ok && IsResultAcceptable( Compute( "day01/input", Private ) );
+
+	const int result = ( ok ? 0 : 1 );
+
+	if( result )
+	{
+		LOG_ERROR( "Final result is: [%d]", result );
+	}
+	else
+	{
+		LOG_INFO( "Final result is: [%d]", result );
+	}
+
+	return result;
+}
+
+enum ResultType
+Compute( const char* _relativePathWithFilestem, enum AccessType _access )
+{
 	const char sep = '\n';
 
 	struct TestData data = {
-		.relativePathWithFilestem = "day01\\sample_input_a",
-		.isPublic = true
+		.relativePathWithFilestem = _relativePathWithFilestem,
+		.accessType = _access
 	};
 
-	LOG_DEBUG( "file: [%s]", data.relativePathWithFilestem );
-
 	if( false == ReadSampleData( &data ) )
-		return EXIT_FAILURE;
+		return ComputeResultNoInput;
 
 	LOG_DEBUG( "Processing data..." );
 
-	int result = EXIT_SUCCESS;
 	size_t pos = 0, from = 0;
 
 	struct Context ctx = { 0, 0 };
@@ -49,45 +75,66 @@ main( int _argc, char* _argv[ ] )
 
 	RELEASE( data.input.data );
 
-	bool resultMatch = true;
+	enum ResultType result = ComputeResultMatch;
+
+	char szResult[ 32 ];
+	snprintf(
+		szResult,
+		32,
+		"%zu",
+		ctx.sumCalories );
 
 	if( data.expectedResult.isRead )
 	{
-		char szResult[ 32 ];
-		snprintf(
-			szResult,
-			32,
-			"%zu",
-			ctx.m_sumCalories );
-
-		LOG_DEBUG(
-			"Expected result: [%s] vs computed result: [%s]",
-			data.expectedResult.data,
-			szResult );
-
-		resultMatch = ( 0 == strcmp( data.expectedResult.data, szResult ) );
+		if( strcmp( data.expectedResult.data, szResult ) )
+		{
+			LOG_ERROR(
+				"FAIL: expected result [%s] does not match computed [%s]",
+				data.expectedResult.data,
+				szResult );
+			result = ComputeResultNoMatch;
+		}
+		else
+		{
+			LOG_INFO(
+				"OK: computed result [%s] matches expected",
+				szResult );
+		}
 	}
 	else
-		LOG_DEBUG( "No expected result file found to compare our result against" );
+	{
+		LOG_DEBUG( "Result: [%s] (no data to compare against)", szResult );
+		result = ComputeResultNoResult;
+	}
 
 	RELEASE( data.expectedResult.data );
 
-	LOG_INFO(
-		"Result: [%s]",
-		resultMatch ? "passed" : "failed" );
-
-	return resultMatch ? 0 : 1;
+	return result;
 }
 
-void Process( const char* _line, struct Context* _ctx )
+void
+Process( const char* _line, struct Context* _ctx )
 {
 	LOG_DEBUG( "Line [%s]", _line );
 
 	if( strlen( _line ) == 0 )
-		_ctx->m_partialSum = 0;
+		_ctx->partialSum = 0;
 	else
 	{
-		_ctx->m_partialSum += strtoull( _line, NULL, 10 );
-		_ctx->m_sumCalories = max( _ctx->m_sumCalories, _ctx->m_partialSum );
+		_ctx->partialSum += strtoull( _line, NULL, 10 );
+		_ctx->sumCalories = max( _ctx->sumCalories, _ctx->partialSum );
+	}
+}
+
+bool
+IsResultAcceptable( enum ComputeResult _result )
+{
+	switch( _result )
+	{
+	case ComputeResultMatch:
+	case ComputeResultNoResult:
+		return true;
+	default:
+		return false;
 	}
 }

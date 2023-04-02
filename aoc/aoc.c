@@ -16,7 +16,7 @@
 	#define MAX_PATH _MAX_PATH
 #endif
 
-bool ReadData( const char* _relativePathWithFilestem, const char* _postfix, struct FileContents* _contents );
+bool ReadData( const char* _relativePathWithFilestem, enum AccessType _accessType, const char* _postfix, struct FileContents* _contents );
 void Init( struct FileContents* _contents );
 
 bool
@@ -27,6 +27,7 @@ ReadSampleData( struct TestData* _data )
 
 	if( false == ReadData(
 		_data->relativePathWithFilestem,
+		_data->accessType,
 		NULL,
 		&_data->input ) )
 	{
@@ -35,6 +36,7 @@ ReadSampleData( struct TestData* _data )
 
 	ReadData(
 		_data->relativePathWithFilestem,
+		_data->accessType,
 		"_result",
 		&_data->expectedResult );
 
@@ -42,17 +44,19 @@ ReadSampleData( struct TestData* _data )
 }
 
 bool
-ReadData( const char* _relativePathWithFilestem, const char* _postfix, struct FileContents* _contents )
+ReadData( const char* _relativePathWithFilestem, enum AccessType _accessType, const char* _postfix, struct FileContents* _contents )
 {
 	LOG_DEBUG( "_relativePathWithFilestem: [%s] _postfix: [%s]", _relativePathWithFilestem, _postfix );
 
 	const size_t postfixLength = ( _postfix ? strlen( _postfix ) : 0 );
+	const char* dataSubDir = ( _accessType == Public ? "data/public" : "data/private" );
 
-	if( strlen( DATA_ROOT_DIR ) + strlen( _relativePathWithFilestem ) + postfixLength + 5 >= MAX_PATH )
+	if( strlen( DATA_ROOT_DIR ) + strlen( dataSubDir ) + strlen( _relativePathWithFilestem ) + postfixLength + 5 >= MAX_PATH )
 	{
 		LOG_ERROR(
-			"Data path [%s] or file path [%s] + postfix [%s] too long and combined exceeds [%d B] value",
+			"Data path [%s/%s] or file path [%s] + postfix [%s] too long and combined exceeds [%d B] value",
 			DATA_ROOT_DIR,
+			dataSubDir,
 			_relativePathWithFilestem,
 			_postfix,
 			MAX_PATH );
@@ -62,7 +66,9 @@ ReadData( const char* _relativePathWithFilestem, const char* _postfix, struct Fi
 	char fullPath[ MAX_PATH ] = { 0 };
 
 	VERIFY_NOT_NULL( strcpy( fullPath, DATA_ROOT_DIR ) );
-	VERIFY_NOT_NULL( strcat( fullPath, "\\" ) );
+	VERIFY_NOT_NULL( strcat( fullPath, "/" ) );
+	VERIFY_NOT_NULL( strcat( fullPath, dataSubDir ) );
+	VERIFY_NOT_NULL( strcat( fullPath, "/" ) );
 	VERIFY_NOT_NULL( strcat( fullPath, _relativePathWithFilestem ) );
 	if( _postfix )
 		VERIFY_NOT_NULL( strcat( fullPath, _postfix ) );
