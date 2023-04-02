@@ -12,11 +12,17 @@ struct FileContents
 	size_t size;
 };
 
+enum AccessType
+{
+	Private,
+	Public
+};
+
 struct TestData
 {
 	//in
 	const char*         relativePathWithFilestem;// i.e. day01/sample_input_a
-	bool                isPublic; // if true look in public dir, if false look in private (not in CVS) dir
+	enum AccessType     accessType; // look for data in either public or private dirs
 
 	//out
 	struct FileContents input;
