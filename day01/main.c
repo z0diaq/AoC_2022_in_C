@@ -10,53 +10,84 @@ struct Context
 	size_t m_partialSum;
 };
 
-void Process( const char* line, struct Context* ctx );
+void Process( const char* _line, struct Context* _ctx );
 
 int
 main( int _argc, char* _argv[ ] )
 {
-	char* fileContents = NULL;
 	const char sep = '\n';
-	size_t fileContentsSize = 0;
 
-	if( false == ReadSampleData( "day01\\sample_input_a.txt", &fileContents, &fileContentsSize ) )
+	struct TestData data = {
+		.relativePathWithFilestem = "day01\\sample_input_a",
+		.isPublic = true
+	};
+
+	LOG_DEBUG( "file: [%s]", data.relativePathWithFilestem );
+
+	if( false == ReadSampleData( &data ) )
 		return EXIT_FAILURE;
+
+	LOG_DEBUG( "Processing data..." );
 
 	int result = EXIT_SUCCESS;
 	size_t pos = 0, from = 0;
 
 	struct Context ctx = { 0, 0 };
 
-	while( pos < fileContentsSize )
+	while( pos < data.input.size )
 	{
-		if( fileContents[ pos ] == sep || pos == ( fileContentsSize - 1 ) )
+		if( data.input.data[ pos ] == sep || pos == ( data.input.size - 1 ) )
 		{
-			if( pos < ( fileContentsSize - 1 ) )
-				fileContents[ pos ] = 0;
+			if( pos < ( data.input.size - 1 ) )
+				data.input.data[ pos ] = 0;
 
-			Process( fileContents + from, &ctx );
+			Process( data.input.data + from, &ctx );
 			from = pos + 1;
 		}
 		++pos;
 	}
 
-	RELEASE( fileContents );
+	RELEASE( data.input.data );
 
-	LOG_INFO( "Result: [%zu]", ctx.m_sumCalories );
+	bool resultMatch = true;
 
-	return result;
+	if( data.expectedResult.isRead )
+	{
+		char szResult[ 32 ];
+		snprintf(
+			szResult,
+			32,
+			"%zu",
+			ctx.m_sumCalories );
+
+		LOG_DEBUG(
+			"Expected result: [%s] vs computed result: [%s]",
+			data.expectedResult.data,
+			szResult );
+
+		resultMatch = ( 0 == strcmp( data.expectedResult.data, szResult ) );
+	}
+	else
+		LOG_DEBUG( "No expected result file found to compare our result against" );
+
+	RELEASE( data.expectedResult.data );
+
+	LOG_INFO(
+		"Result: [%s]",
+		resultMatch ? "passed" : "failed" );
+
+	return resultMatch ? 0 : 1;
 }
 
-void Process( const char* line, struct Context* ctx )
+void Process( const char* _line, struct Context* _ctx )
 {
+	LOG_DEBUG( "Line [%s]", _line );
 
-	LOG_INFO( "Line [%s]", line );
-
-	if( strlen( line ) == 0 )
-		ctx->m_partialSum = 0;
+	if( strlen( _line ) == 0 )
+		_ctx->m_partialSum = 0;
 	else
 	{
-		ctx->m_partialSum += strtoull( line, NULL, 10 );
-		ctx->m_sumCalories = max( ctx->m_sumCalories, ctx->m_partialSum );
+		_ctx->m_partialSum += strtoull( _line, NULL, 10 );
+		_ctx->m_sumCalories = max( _ctx->m_sumCalories, _ctx->m_partialSum );
 	}
 }
