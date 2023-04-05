@@ -42,21 +42,27 @@ Execute( struct DataLocationInfo _dataLocations[ ],
 
 	int result = 0;
 
-	for( size_t dataNo = 0; dataNo != dataCount && 0 == result; ++dataNo )
+	for( size_t dataNo = 0; dataNo != dataCount; ++dataNo )
 	{
-		LOG_INFO( "Using [%zu] data set...", dataNo );
+		LOG( "" );
+		LOG_INFO( "##### Processing data set [%zu]...", dataNo + 1 );
 		struct TestData* data = *( struct TestData** )ArrayGet( dataArray, dataNo );
 
-		LOG_DEBUG( "Solving part 1..."  );
+		LOG( "" );
+		LOG_INFO( "Solving part 1..."  );
 		if( false == IsResultAcceptable( Solve( data->input, data->expectedResultPart1, &_setupPart1 ) ) )
-			result = 1;
-
-		if( 0 == result )
 		{
-			LOG_DEBUG( "Solving part 2..." );
+			result = 1;
+			break;
+		}
 
-			if( false == IsResultAcceptable( Solve( data->input, data->expectedResultPart2, &_setupPart2 ) ) )
-				result = 1;
+		LOG( "" );
+		LOG_INFO( "Solving part 2..." );
+
+		if( false == IsResultAcceptable( Solve( data->input, data->expectedResultPart2, &_setupPart2 ) ) )
+		{
+			result = 1;
+			break;
 		}
 	}
 
@@ -71,7 +77,7 @@ Execute( struct DataLocationInfo _dataLocations[ ],
 
 		RELEASE( data );
 	}
-	LOG_DEBUG( "Release sub data, time for top level array" );
+	LOG_DEBUG( "Released sub data, time for top level array" );
 
 	ArrayDestroy( &dataArray );
 	LOG_DEBUG( "Memory released, all done!" );
@@ -82,9 +88,15 @@ Execute( struct DataLocationInfo _dataLocations[ ],
 enum ComputeResult
 Solve( struct Array* _lines, struct Array* _expectedResult, struct ExecuteSetup* _setup )
 {
-	LOG_DEBUG( "Processing data..." );
-
 	void* ctx = ( *_setup->createCtx )( );
+
+	if( !ctx )
+	{
+		LOG_INFO( "No context returned - assuming this part is not ready yet" );
+		return ComputeResultNoResult;
+	}
+
+	LOG_DEBUG( "Processing data..." );
 
 	const size_t linesToProcess = ArraySize( _lines );
 	for( size_t lineNo = 0; lineNo != linesToProcess; ++lineNo )
@@ -92,6 +104,7 @@ Solve( struct Array* _lines, struct Array* _expectedResult, struct ExecuteSetup*
 
 	enum ComputeResult result = ComputeResultMatch;
 
+	LOG_DEBUG( "Requesting result..." );
 	char* szResult;
 	( *_setup->resultFunction )( &szResult, ctx );
 
@@ -100,7 +113,7 @@ Solve( struct Array* _lines, struct Array* _expectedResult, struct ExecuteSetup*
 		if( strcmp( ( char* )ArrayGet( _expectedResult, 0 ), szResult ) )
 		{
 			LOG_ERROR(
-				"FAIL: expected result [%s] does not match computed [%s]",
+				"FAILURE: expected result [%s] does not match computed [%s]",
 				( char* )ArrayGet( _expectedResult, 0 ),
 				szResult );
 			result = ComputeResultNoMatch;
@@ -108,17 +121,22 @@ Solve( struct Array* _lines, struct Array* _expectedResult, struct ExecuteSetup*
 		else
 		{
 			LOG_INFO(
-				"OK: computed result [%s] matches expected",
+				"SUCCESS: computed result [%s] matches expected",
 				szResult );
 		}
 	}
 	else
 	{
-		LOG_DEBUG( "Result: [%s] (no data to compare against)", szResult );
+		LOG_INFO( "Result: [%s] (no data to compare against)", szResult );
 		result = ComputeResultNoResult;
 	}
 
 	RELEASE( szResult );
+
+	if( _setup->destroyCtx )
+		( *_setup->destroyCtx )( &ctx );
+
+	RELEASE( ctx );
 
 	return result;
 }

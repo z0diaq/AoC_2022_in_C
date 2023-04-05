@@ -12,3 +12,4 @@ enable_testing( )
 add_subdirectory( "tests" )
 
 add_subdirectory( "day01" )
+add_subdirectory( "day02" )
