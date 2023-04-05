@@ -7,6 +7,8 @@
 DECLARE_TEST( canSortTwoElements );
 DECLARE_TEST( canSortTenElements );
 
+int intCmp( const void*, const void* );
+
 int intArraySortingTests( int ac, char* av[ ] )
 {
 	int testsResult = 0, testsPassed = 0, testsExecuted = 0;
@@ -27,7 +29,7 @@ TEST_BEGIN( canSortTwoElements )
 	CHECK_TRUE( 2 == ArraySize( intArray ) );
 	CHECK_TRUE( ArrayCapacity( intArray ) >= 2 );
 
-	ArraySort( intArray );
+	ArraySort( intArray, intCmp );
 
 	CHECK_EQUAL_INT( sortedValues[ 0 ], *(int *)ArrayGet( intArray, 0 ) );
 	CHECK_EQUAL_INT( sortedValues[ 1 ], *(int *)ArrayGet( intArray, 1 ) );
@@ -47,7 +49,7 @@ TEST_BEGIN( canSortTenElements )
 	CHECK_TRUE( 10 == ArraySize( intArray ) );
 	CHECK_TRUE( ArrayCapacity( intArray ) >= 10 );
 
-	ArraySort( intArray );
+	ArraySort( intArray, intCmp );
 
 
 	for( size_t index = 0; index != 10; ++index )
@@ -56,3 +58,11 @@ TEST_BEGIN( canSortTenElements )
 	ArrayDestroy( &intArray );
 	CHECK_TRUE( NULL == intArray );
 TEST_END
+
+int intCmp( const void* _lhs, const void* _rhs )
+{
+	ASSURE( _lhs );
+	ASSURE( _rhs );
+
+	return *( int* )_lhs - *( int* )_rhs;
+}

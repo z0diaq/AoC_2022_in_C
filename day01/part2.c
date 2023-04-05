@@ -11,6 +11,19 @@ struct ContextPart2
 	struct Array* eachElfTotalCallories;
 };
 
+int sizeCompare( const void* _lhs, const void* _rhs )
+{
+	ASSURE( _lhs );
+	ASSURE( _rhs );
+
+	if( *( size_t* )_lhs < *( size_t* )_rhs )
+		return -1;
+	else if( *( size_t* )_lhs > *( size_t* )_rhs )
+		return 1;
+	else
+		return 0;
+}
+
 void*
 CreateCtxPart2( )
 {
@@ -46,7 +59,7 @@ PrepareResultPart2( char** _output, struct ContextPart2* _ctx )
 
 	*_output = ( char* )malloc( 32 * sizeof( char ) );
 
-	ArraySort( _ctx->eachElfTotalCallories );
+	ArraySort( _ctx->eachElfTotalCallories, sizeCompare );
 
 	size_t totalCaloriesFromThreeTopElves = 0;
 	for( size_t no = size - 3; no != size; ++no )

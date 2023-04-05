@@ -1,7 +1,6 @@
 #include "array.h"
 #include "utils.h"
 
-#include <stdlib.h>
 #include <memory.h>
 #include <stdio.h>
 
@@ -78,16 +77,9 @@ ArrayCapacity( struct Array* _array )
 	return _array->capacity;
 }
 
-int sortFun( const int* _lhs, const int* _rhs )
-{
-	ASSURE( _lhs );
-	ASSURE( _rhs );
-	return *_lhs - *_rhs;
-}
-
 void
-ArraySort( struct Array* _array )
+ArraySort( struct Array* _array, cmpFunction fun )
 {
 	ASSURE( _array );
-	qsort( _array->memory, _array->size, _array->elementSize, sortFun );
+	qsort( _array->memory, _array->size, _array->elementSize, fun );
 }
