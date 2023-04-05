@@ -47,13 +47,13 @@ Execute( struct DataLocationInfo _dataLocations[ ],
 		LOG_INFO( "Using [%zu] data set...", dataNo );
 		struct TestData* data = *( struct TestData** )ArrayGet( dataArray, dataNo );
 
-		LOG_DEBUG( "Solving part 1..."  );
+		LOG_INFO( "Solving part 1..."  );
 		if( false == IsResultAcceptable( Solve( data->input, data->expectedResultPart1, &_setupPart1 ) ) )
 			result = 1;
 
 		if( 0 == result )
 		{
-			LOG_DEBUG( "Solving part 2..." );
+			LOG_INFO( "Solving part 2..." );
 
 			if( false == IsResultAcceptable( Solve( data->input, data->expectedResultPart2, &_setupPart2 ) ) )
 				result = 1;
@@ -86,6 +86,12 @@ Solve( struct Array* _lines, struct Array* _expectedResult, struct ExecuteSetup*
 
 	void* ctx = ( *_setup->createCtx )( );
 
+	if( !ctx )
+	{
+		LOG_INFO( "No context returned - assuming this part is not ready yet" );
+		return ComputeResultNoResult;
+	}
+
 	const size_t linesToProcess = ArraySize( _lines );
 	for( size_t lineNo = 0; lineNo != linesToProcess; ++lineNo )
 		( *_setup->processFunction )( ArrayGet( _lines, lineNo ), ctx );
@@ -114,11 +120,16 @@ Solve( struct Array* _lines, struct Array* _expectedResult, struct ExecuteSetup*
 	}
 	else
 	{
-		LOG_DEBUG( "Result: [%s] (no data to compare against)", szResult );
+		LOG_INFO( "Result: [%s] (no data to compare against)", szResult );
 		result = ComputeResultNoResult;
 	}
 
 	RELEASE( szResult );
+
+	if( _setup->destroyCtx )
+		( *_setup->destroyCtx )( &ctx );
+
+	RELEASE( ctx );
 
 	return result;
 }
