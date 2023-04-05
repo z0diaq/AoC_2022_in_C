@@ -1,60 +1,61 @@
 #pragma once
 
-#include <stdlib.h> //min and max - if exist
+#include <stdlib.h>
 
 #define RELEASE(chunk) free(chunk);chunk = NULL
 
-#ifdef _RELEASE
+#ifdef NDEBUG
 #define FLUSH(stream)
 #else
 #define FLUSH(stream) fflush(stream)
 #endif
 
-#define LOG_ERROR(...) fprintf(stderr, "ERROR: " __VA_ARGS__ ); fprintf(stderr, "\n"); FLUSH( stderr )
-#define LOG_INFO(...) fprintf(stderr, "INFO: " __VA_ARGS__ ); fprintf(stdout, "\n"); FLUSH( stderr )
+#define LOG_ERROR(...) do { fprintf(stderr, "ERROR: " __VA_ARGS__ ); fprintf(stderr, "\n"); FLUSH( stderr ); } while( 0 )
+#define LOG_INFO(...) do { fprintf(stderr, "INFO: " __VA_ARGS__ ); fprintf(stdout, "\n"); FLUSH( stderr ); } while( 0 )
 
 #ifdef _DEBUG
-#define LOG_DEBUG(...) fprintf(stderr, "DEBUG: " __VA_ARGS__ ); fprintf(stdout, "\n"); FLUSH( stderr )
+#define LOG_DEBUG(...) do { fprintf(stderr, "DEBUG: " __VA_ARGS__ ); fprintf(stdout, "\n"); FLUSH( stderr ); } while( 0 )
 #else
 #define LOG_DEBUG(...)
 #endif
 
-#ifndef max
-#define max(a,b)             \
-({                           \
-    __typeof__ (a) _a = (a); \
-    __typeof__ (b) _b = (b); \
-    _a > _b ? _a : _b;       \
-})
-#endif
+// min and max macros are pure evil
+__forceinline
+size_t min_size_t( size_t _lhs, size_t _rhs ) {
+	return _lhs < _rhs ? _lhs : _rhs;
+}
 
-#ifndef min
-#define min(a,b)             \
-({                           \
-    __typeof__ (a) _a = (a); \
-    __typeof__ (b) _b = (b); \
-    _a < _b ? _a : _b;       \
-})
-#endif
+__forceinline
+size_t max_size_t( size_t _lhs, size_t _rhs ) {
+	return _lhs > _rhs ? _lhs: _rhs;
+}
 
-#define STRINGIFY(x) STRINGIFY2(x)
-#define STRINGIFY2(x) #x
 
-#define VERIFY_IS_ZERO(cmd)                                                            \
+#define STRINGIFY(_x) STRINGIFY2(_x)
+#define STRINGIFY2(_x) #_x
+
+#define VERIFY_IS_ZERO(_cmd)                                                           \
 {                                                                                      \
-	const int errorCode = cmd;                                                         \
+	const int errorCode = ( _cmd );                                                    \
 	if(errorCode)                                                                      \
 	{                                                                                  \
-		LOG_ERROR( "Command [%s] failed with error [%d]", STRINGIFY(cmd), errorCode);  \
+		LOG_ERROR( "Command [%s] failed with error [%d]", STRINGIFY(_cmd), errorCode); \
 		return false;                                                                  \
 	}                                                                                  \
 }
 
-#define VERIFY_NOT_NULL(cmd)                                                           \
+#define VERIFY_NOT_NULL(_cmd)                                                          \
 {                                                                                      \
-	if(NULL == cmd)                                                                    \
+	if(NULL == ( _cmd ) )                                                              \
 	{                                                                                  \
-		LOG_ERROR( "Command [%s] failed with error [%d]", STRINGIFY(cmd), errno);      \
+		LOG_ERROR( "Command [%s] failed with error [%d]", STRINGIFY(_cmd), errno);     \
 		return false;                                                                  \
 	}                                                                                  \
+}
+
+#define ASSURE(_var)                                                                   \
+if( ! ( _var ) )                                                                       \
+{                                                                                      \
+	LOG_ERROR( STRINGIFY(_var) " failed - aborting operation!" );                      \
+	exit( 1 );                                                                         \
 }
