@@ -20,15 +20,8 @@
 #endif
 
 // min and max macros are pure evil
-__forceinline
-size_t min_size_t( size_t _lhs, size_t _rhs ) {
-	return _lhs < _rhs ? _lhs : _rhs;
-}
-
-__forceinline
-size_t max_size_t( size_t _lhs, size_t _rhs ) {
-	return _lhs > _rhs ? _lhs: _rhs;
-}
+size_t min_size_t( size_t _lhs, size_t _rhs );
+size_t max_size_t( size_t _lhs, size_t _rhs );
 
 
 #define STRINGIFY(_x) STRINGIFY2(_x)
