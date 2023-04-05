@@ -1,114 +1,62 @@
-
 #include "runner.h"
+#include "shared.h"
 
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 
-struct ContextPart1
-{
-	size_t totalScore;
-};
-
 enum MatchResult
-{
-	MatchResultLost,
-	MatchResultDraw,
-	MatchResultWon
-};
-
-static char Rock = 'A';
-static char Paper = 'B';
-static char Scissors = 'C';
-
-size_t ComputeScore( char _selecetedShape, enum MatchResult _matchResult )
-{
-	size_t score = 0;
-
-	switch( _selecetedShape )
-	{
-	case 'A':
-		score = 1;
-		break;
-	case 'B':
-		score = 2;
-		break;
-	case 'C':
-		score = 3;
-		break;
-	}
-
-	switch( _matchResult )
-	{
-	case MatchResultLost:
-		return score + 0;
-	case MatchResultDraw:
-		return score + 3;
-	case MatchResultWon:
-		return score + 6;
-	}
-}
-
-enum MatchResult
-	FindMatchResult( char _opponentChoice, char _myChoice )
+FindMatchResult( char _opponentChoice, char _myChoice )
 {
 	if( _opponentChoice == _myChoice )
 		return MatchResultDraw;
-	else if( _opponentChoice == Rock )
+	else if( _opponentChoice == ROCK )
 	{
-		if( _myChoice == Paper )
+		if( _myChoice == PAPER )
 			return MatchResultWon;
 		else
 			return MatchResultLost;
 	}
-	else if( _opponentChoice == Paper ) 
+	else if( _opponentChoice == PAPER )
 	{
-		if( _myChoice == Scissors )
+		if( _myChoice == SCISSORS )
 			return MatchResultWon;
 		else
 			return MatchResultLost;
 	}
-	else // Scissors
+	else // SCISSORS
 	{
-		if( _myChoice == Rock )
+		if( _myChoice == ROCK )
 			return MatchResultWon;
 		else
 			return MatchResultLost;
 	}
-}
 
-void* CreateCtxPart1( )
-{
-	struct ContextPart1* result = ( struct ContextPart1* )malloc( sizeof( struct ContextPart1 ) );
-	if( !result ) return NULL;
+	LOG_ERROR(
+		"%s: Unhandled oponent choice [%c] and/or my value [%c]",
+		__FUNCTION__,
+		_opponentChoice,
+		_myChoice );
+	exit( 1 );
 
-	result->totalScore = 0;
-
-	return result;
-}
-
-void PrepareResultPart1( char** _output, void* _ctx )
-{
-	struct ContextPart1* ctx = ( struct ContextPart1* )_ctx;
-
-	*_output = ( char* )malloc( 32 * sizeof( char ) );
-	snprintf( *_output, 32, "%zu", ctx->totalScore );
 }
 
 void
-ProcessPart1( const char* _line, struct ContextPart1* _ctx )
+ProcessPart1( const char* _line, struct Context* _ctx )
 {
+	ASSURE( strlen( _line ) == 3 );
+
 	char myResponse = 0;
 	switch( _line[ 2 ] )
 	{
 	case 'X':
-		myResponse = Rock;
+		myResponse = ROCK;
 		break;
 	case 'Y':
-		myResponse = Paper;
+		myResponse = PAPER;
 		break;
 	case 'Z':
-		myResponse = Scissors;
+		myResponse = SCISSORS;
 		break;
 	}
 
@@ -120,10 +68,10 @@ PrepareSetupPart1( )
 {
 	struct ExecuteSetup result =
 	{
-		.createCtx       = CreateCtxPart1,
+		.createCtx       = CreateCtx,
 		.destroyCtx      = NULL,
 		.processFunction = ProcessPart1,
-		.resultFunction  = PrepareResultPart1
+		.resultFunction  = PrepareResult
 	};
 
 	return result;

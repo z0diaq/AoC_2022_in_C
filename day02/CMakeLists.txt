@@ -1,4 +1,4 @@
-﻿add_executable (day02 "main.c"   "part1.c" "part2.c")
+﻿add_executable (day02 "main.c"   "part1.c" "part2.c" "shared.h" "shared.c")
 target_link_libraries(day02 aoc)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)

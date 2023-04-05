@@ -1,89 +1,77 @@
-#include "array.h"
 #include "runner.h"
+#include "shared.h"
 
-#include <stddef.h>//size_t etc
-#include <stdio.h> //io
-#include <stdlib.h>//qsort
+#include <stddef.h>
+#include <stdio.h>
 #include <string.h>
 
-struct ContextPart2
+char
+PrepareResponse( char _oponentChoice, enum MatchResult _expectedResult )
 {
-	struct Array* eachElfTotalCallories;
-};
-
-int sizeCompare( const void* _lhs, const void* _rhs )
-{
-	ASSURE( _lhs );
-	ASSURE( _rhs );
-
-	if( *( size_t* )_lhs < *( size_t* )_rhs )
-		return -1;
-	else if( *( size_t* )_lhs > *( size_t* )_rhs )
-		return 1;
-	else
-		return 0;
-}
-
-void*
-CreateCtxPart2( )
-{
-	return NULL;
-
-	struct ContextPart2* result = ( struct ContextPart2* )malloc( sizeof( struct ContextPart2 ) );
-	if( result )
+	if( _expectedResult == MatchResultLost )
 	{
-		result->eachElfTotalCallories = ArrayCreate( 2, sizeof( size_t ) );
-
-		//prepare first element for further computation
-		size_t zero = 0;
-		ArrayPush( result->eachElfTotalCallories, &zero );
+		switch( _oponentChoice )
+		{
+		case ROCK:
+			return SCISSORS;
+		case PAPER:
+			return ROCK;
+		case SCISSORS:
+			return PAPER;
+		}
 	}
 
-	return result;
+	if( _expectedResult == MatchResultDraw )
+		return _oponentChoice;
+
+	if( _expectedResult == MatchResultWon )
+	{
+		switch( _oponentChoice )
+		{
+		case ROCK:
+			return PAPER;
+		case PAPER:
+			return SCISSORS;
+		case SCISSORS:
+			return ROCK;
+		}
+	}
+
+	LOG_ERROR(
+		"%s: Unhandled choice [%c] and/or expected result [%d]",
+		__FUNCTION__,
+		_oponentChoice,
+		_expectedResult );
+	exit( 1 );
+}
+
+enum MatchResult
+MatchResultFromChar( char _myResponse )
+{
+	switch( _myResponse )
+	{
+	case 'X':
+		return MatchResultLost;
+	case 'Y':
+		return MatchResultDraw;
+	case 'Z':
+		return MatchResultWon;
+	}
+
+	LOG_ERROR(
+		"%s: Unhandled value [%c]",
+		__FUNCTION__,
+		_myResponse );
+	exit( 1 );
 }
 
 void
-DestroyCtxPart2( void** _ctx )
+ProcessPart2( const char* _line, struct Context* _ctx )
 {
-	struct ContextPart2* ctx = *( struct ContextPart2** )_ctx;
-	ArrayDestroy( &ctx->eachElfTotalCallories );
-	RELEASE( ctx );
-	*_ctx = NULL;
-}
+	ASSURE( strlen( _line ) == 3 );
 
-void
-PrepareResultPart2( char** _output, struct ContextPart2* _ctx )
-{
-	struct ContextPart2* ctx = ( struct ContextPart2* )_ctx;
-
-	const size_t size = ArraySize( _ctx->eachElfTotalCallories );
-	ASSURE( size >= 3 );
-
-	*_output = ( char* )malloc( 32 * sizeof( char ) );
-
-	ArraySort( _ctx->eachElfTotalCallories, sizeCompare );
-
-	size_t totalCaloriesFromThreeTopElves = 0;
-	for( size_t no = size - 3; no != size; ++no )
-		totalCaloriesFromThreeTopElves += *( size_t* )ArrayGet( _ctx->eachElfTotalCallories, no );
-
-	snprintf( *_output, 32, "%zu", totalCaloriesFromThreeTopElves );
-}
-
-void
-ProcessPart2( const char* _line, struct ContextPart2* _ctx )
-{
-	if( strlen( _line ) == 0 )
-	{
-		size_t zero = 0;
-		ArrayPush( _ctx->eachElfTotalCallories, &zero );
-	}
-	else
-	{
-		const size_t size = ArraySize( _ctx->eachElfTotalCallories );
-		size_t* partialSum = ( size_t* )ArrayGet( _ctx->eachElfTotalCallories, size - 1 );
-		*partialSum += strtoull( _line, NULL, 10 );
-	}
+	enum MatchResult matchResult = MatchResultFromChar( _line[ 2 ] );
+	_ctx->totalScore += ComputeScore( PrepareResponse( _line[ 0 ], matchResult ), matchResult );
 }
 
 struct ExecuteSetup
@@ -91,10 +79,10 @@ PrepareSetupPart2( )
 {
 	struct ExecuteSetup result =
 	{
-		.createCtx       = CreateCtxPart2,
-		.destroyCtx      = DestroyCtxPart2,
+		.createCtx = CreateCtx,
+		.destroyCtx = NULL,
 		.processFunction = ProcessPart2,
-		.resultFunction  = PrepareResultPart2
+		.resultFunction = PrepareResult
 	};
 
 	return result;

@@ -10,11 +10,12 @@
 #define FLUSH(stream) fflush(stream)
 #endif
 
+#define LOG(...)  do { fprintf(stdout, __VA_ARGS__ ); fprintf(stdout, "\n"); FLUSH( stdout ); } while( 0 )
 #define LOG_ERROR(...) do { fprintf(stderr, "ERROR: " __VA_ARGS__ ); fprintf(stderr, "\n"); FLUSH( stderr ); } while( 0 )
-#define LOG_INFO(...) do { fprintf(stderr, "INFO: " __VA_ARGS__ ); fprintf(stdout, "\n"); FLUSH( stderr ); } while( 0 )
+#define LOG_INFO(...) do { fprintf(stdout, "INFO: " __VA_ARGS__ ); fprintf(stdout, "\n"); FLUSH( stdout ); } while( 0 )
 
 #ifdef _DEBUG
-#define LOG_DEBUG(...) do { fprintf(stderr, "DEBUG: " __VA_ARGS__ ); fprintf(stdout, "\n"); FLUSH( stderr ); } while( 0 )
+#define LOG_DEBUG(...) do { fprintf(stdout, "DEBUG: " __VA_ARGS__ ); fprintf(stdout, "\n"); FLUSH( stdout ); } while( 0 )
 #else
 #define LOG_DEBUG(...)
 #endif
